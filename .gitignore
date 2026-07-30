@@ -10,9 +10,10 @@ __pycache__/
 
 *.sqlite3
 db.sqlite3
+data_recipe.json
 
-# we did it on purpose so that the project can connect to the database
-!.env
+ .env
+!.env.example
 
 .vscode/
 .idea/

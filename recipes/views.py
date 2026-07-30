@@ -11,8 +11,8 @@ from shopping_list.models import ShoppingListItem
 from .forms import RecipeSearchFilterForm
 from .models import FavoriteRecipe, Ingredient, Recipe
 
-# Number of recipes shown per page
-PAGINATE_BY = 6
+# Number of recipes shown per page(constant for all pages)
+PAGINATE_BY = 9
 
 
 def get_pantry_quantities(user):
