@@ -11,12 +11,14 @@ from .models import PantryItem
 @login_required
 @require_http_methods(["GET"])
 def pantry_list_view(request):
+    # Get all pantry items for the current user
     pantry_items = PantryItem.objects.select_related("ingredient").filter(
         user=request.user
     )
-    
+
+    # empty form for adding a new pantry item
     form = PantryItemForm()
-    
+
     context = {
         "pantry_items": pantry_items,
         "form": form,
@@ -25,10 +27,11 @@ def pantry_list_view(request):
 
 
 @login_required
-@require_http_methods(["POST"])  
+@require_http_methods(["POST"])
 def pantry_add_view(request):
     form = PantryItemForm(request.POST)
 
+    # Return form errors if the submitted data is invalid
     if not form.is_valid():
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse(form.errors, status=400)
@@ -46,7 +49,7 @@ def pantry_add_view(request):
     quantity = form.cleaned_data["quantity"]
     expiration_date = form.cleaned_data.get("expiration_date")
 
-    # Match existing item by user, ingredient AND exact expiration date
+    # If the same ingredient with the same expiration date exists, update its quantity
     existing_item = PantryItem.objects.filter(
         user=request.user, ingredient=ingredient, expiration_date=expiration_date
     ).first()
@@ -57,11 +60,13 @@ def pantry_add_view(request):
         item = existing_item
         message = "Matching ingredient batch found. Quantity updated successfully!"
     else:
+        # Otherwise, create a new pantry item
         item = form.save(commit=False)
         item.user = request.user
         item.save()
         message = "Item saved successfully."
 
+    # Return JSON response for AJAX requests
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         data = {
             "id": item.id,
@@ -80,9 +85,12 @@ def pantry_add_view(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def pantry_update_view(request, pk):
+    # Get the pantry item that belongs to the current user
     item = get_object_or_404(PantryItem, pk=pk, user=request.user)
 
     data = request.POST.copy()
+
+    # keep the current ingredient if it wasn't submitted
     if "ingredient" not in data:
         data["ingredient"] = item.ingredient_id
 
@@ -93,6 +101,7 @@ def pantry_update_view(request, pk):
             return JsonResponse({"errors": form.errors}, status=400)
         return redirect("pantry:list")
 
+    # save the updated pantry item
     item = form.save()
     message = "Item updated successfully."
 
@@ -109,22 +118,27 @@ def pantry_update_view(request, pk):
 
 
 @login_required
-@require_http_methods(["GET", "POST","DELETE"])
+@require_http_methods(["GET", "POST", "DELETE"])
 def pantry_delete_view(request, pk):
+    # Find the item to delete
     item = get_object_or_404(PantryItem, pk=pk, user=request.user)
 
+    # Show a confirmation page before deleting
     if request.method == "GET":
         return render(request, "pantry/pantry_confirm_delete.html", {"object": item})
 
     item.delete()
+
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"message": "Item deleted successfully."}, status=200)
+
     return redirect("pantry:list")
 
 
 @login_required
 @require_http_methods(["POST"])
 def clear_pantry(request):
+    # Remove all pantry items for the current user
     PantryItem.objects.filter(
         user=request.user
     ).delete()

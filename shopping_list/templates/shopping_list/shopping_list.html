@@ -1,127 +1,231 @@
-{% extends 'base.html' %} {% block title %}My Shopping List{% endblock %} {% block content %}
+{% extends 'base.html' %}
+{% block title %}My Shopping List{% endblock %}
+
+{% block content %}
 <div class="page-header">
     <div>
         <h1><i class="bi bi-cart3"></i> My Shopping List</h1>
         <p class="subtitle">Marking an item as bought moves it straight into your pantry.</p>
     </div>
+
+    <!-- Show number of items -->
     {% if items %}
-    <span class="pill">{{ items|length }} item{{ items|length|pluralize }}</span> {% endif %}
+    <span class="pill">{{ items|length }} item{{ items|length|pluralize }}</span>
+    {% endif %}
 </div>
 
-<!-- ADD FORM -->
+<!-- Form to add a new item -->
 <div class="form-panel">
     <form method="post" action="{% url 'shopping_list:add_item' %}" class="row g-2 align-items-end">
         {% csrf_token %}
+
         <div class="col-md-5 position-relative">
             <label class="form-label small text-muted mb-1">Ingredient</label>
-            <input type="text" id="ingredient-search-shopping" class="form-control" placeholder="Start typing an ingredient..." autocomplete="off">
+
+            <input type="text"
+                   id="ingredient-search-shopping"
+                   class="form-control"
+                   placeholder="Start typing an ingredient..."
+                   autocomplete="off">
+
             <input type="hidden" id="ingredient-id-shopping" name="ingredient">
+
+            <!-- autocomplete suggestions -->
             <div id="ingredient-results-shopping" class="autocomplete-results"></div>
         </div>
+
         <div class="col-md-4">
-            <label class="form-label small text-muted mb-1">Quantity needed</label> {{ form.quantity_needed }}
+            <label class="form-label small text-muted mb-1">Quantity needed</label>
+            {{ form.quantity_needed }}
         </div>
+
         <div class="col-md-3 d-grid">
             <button type="submit" class="btn btn-primary">Add Item</button>
         </div>
     </form>
 </div>
 
-<!-- LIST -->
-{% if items %} {% for item in items %} {# bought items get the greyed-out "done" style #}
-<div class="item-row {% if item.is_purchased %}item-row--done{% else %}item-row--missing{% endif %}" id="item-{{ item.id }}">
+<!-- Shopping list -->
+{% if items %}
+{% for item in items %}
+
+<div class="item-row {% if item.is_purchased %}item-row--done{% else %}item-row--missing{% endif %}"
+     id="item-{{ item.id }}">
+
     <div>
         <span class="item-row__name">
-                    {% if item.is_purchased %}✔{% else %}○{% endif %}
-                    {{ item.ingredient.title }}
-                </span>
-
-        <span class="quantity-view" id="quantity-view-{{ item.id }}">
-                    &mdash; {{ item.quantity_needed|floatformat:"-2" }}
-                    <span class="text-muted">{{ item.ingredient.unit }}</span>
+            {% if item.is_purchased %}✔{% else %}○{% endif %}
+            {{ item.ingredient.title }}
         </span>
 
+        <!-- Current quantity -->
+        <span class="quantity-view" id="quantity-view-{{ item.id }}">
+            &mdash; {{ item.quantity_needed|floatformat:"-2" }}
+            <span class="text-muted">{{ item.ingredient.unit }}</span>
+        </span>
+
+        <!-- Edit quantity -->
         <span class="quantity-edit d-none" id="quantity-edit-{{ item.id }}">
-                    <input type="number" step="0.01" min="0.01" class="form-control d-inline-block"
-                           style="width: 110px;"
-                           id="quantity-input-{{ item.id }}" value="{{ item.quantity_needed|floatformat:'-2' }}">
-                    <button class="btn btn-sm btn-primary" onclick="saveQuantity('{{ item.id }}')">Save</button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="cancelEdit('{{ item.id }}')">Cancel</button>
-                </span>
+            <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                class="form-control d-inline-block"
+                style="width:110px;"
+                id="quantity-input-{{ item.id }}"
+                value="{{ item.quantity_needed|floatformat:'-2' }}">
+
+            <button type="button"
+                    class="btn btn-sm btn-primary"
+                    onclick="saveQuantity('{{ item.id }}')">
+                Save
+            </button>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    onclick="cancelEdit('{{ item.id }}')">
+                Cancel
+            </button>
+        </span>
     </div>
 
     <div class="d-flex gap-1 flex-wrap">
-        <button class="btn btn-sm btn-outline-secondary edit-btn-{{ item.id }}" onclick="startEdit('{{ item.id }}')">Edit</button>
 
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary edit-btn-{{ item.id }}"
+            onclick="startEdit('{{ item.id }}')">
+            Edit
+        </button>
+
+        <!-- Mark as bought -->
         <form method="post" action="{% url 'shopping_list:toggle_purchased' item.id %}" class="d-inline">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm {% if item.is_purchased %}btn-outline-secondary{% else %}btn-primary{% endif %}">
-                        {% if item.is_purchased %}Undo{% else %}Mark as bought{% endif %}
-                    </button>
+            <button type="submit"
+                class="btn btn-sm {% if item.is_purchased %}btn-outline-secondary{% else %}btn-primary{% endif %}">
+                {% if item.is_purchased %}Undo{% else %}Mark as bought{% endif %}
+            </button>
         </form>
 
+        <!-- Delete item -->
         <form method="post" action="{% url 'shopping_list:delete_item' item.id %}" class="d-inline">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+            </button>
         </form>
+
     </div>
 </div>
+
 {% endfor %}
 
-<form method="post" action="{% url 'shopping_list:clear_shopping_list' %}" class="mt-3" onsubmit="return confirm('Clear the whole shopping list?');">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-outline-danger btn-sm">Clear list</button>
-</form>
-{% else %}
-<div class="empty-state">
-    <span class="empty-state__icon"><i class="bi bi-cart-x"></i></span>
-    <p>Your shopping list is empty.</p>
-    <a href="{% url 'recipes:recipe_list' %}" class="btn btn-primary mt-2">Find a recipe to cook</a>
+<!-- Clear buttons -->
+<div class="d-flex gap-2 mt-3 flex-wrap">
+
+    <form method="post"
+          action="{% url 'shopping_list:clear_purchased_items' %}"
+          onsubmit="return confirm('Clear all purchased items?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            Clear purchased items
+        </button>
+    </form>
+
+    <form method="post"
+          action="{% url 'shopping_list:clear_shopping_list' %}"
+          onsubmit="return confirm('Clear the whole shopping list?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">
+            Clear list
+        </button>
+    </form>
+
 </div>
-{% endif %} {# Hidden CSRF form for JavaScript requests #}
-<form id="csrf-form" class="d-none">{% csrf_token %}</form>
-{% endblock %} {% block extra_js %}
+
+{% else %}
+
+<!-- Show this when the list is empty -->
+<div class="empty-state">
+    <span class="empty-state__icon">
+        <i class="bi bi-cart-x"></i>
+    </span>
+
+    <p>Your shopping list is empty.</p>
+
+    <a href="{% url 'recipes:recipe_list' %}" class="btn btn-primary mt-2">
+        Find a recipe to cook
+    </a>
+</div>
+
+{% endif %}
+
+<!-- csrf token for ajax -->
+<form id="csrf-form" class="d-none">
+    {% csrf_token %}
+</form>
+
+{% endblock %}
+
+
+{% block extra_js %}
 <script>
-    // Inline quantity editing
+
+    // Show the edit input
     function startEdit(itemId) {
         document.getElementById('quantity-view-' + itemId).classList.add('d-none');
         document.getElementById('quantity-edit-' + itemId).classList.remove('d-none');
         document.querySelector('.edit-btn-' + itemId).classList.add('d-none');
     }
 
+    // Cancel editing
     function cancelEdit(itemId) {
         document.getElementById('quantity-view-' + itemId).classList.remove('d-none');
         document.getElementById('quantity-edit-' + itemId).classList.add('d-none');
         document.querySelector('.edit-btn-' + itemId).classList.remove('d-none');
     }
 
+    // Save the new quantity without refreshing the page
     function saveQuantity(itemId) {
+
         const newQuantity = document.getElementById('quantity-input-' + itemId).value;
         const csrfToken = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
 
         fetch('/shopping-list/edit/' + itemId + '/', {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'quantity_needed=' + encodeURIComponent(newQuantity),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const unit = document.querySelector('#quantity-view-' + itemId + ' .text-muted').textContent;
-                    document.getElementById('quantity-view-' + itemId).innerHTML =
-                        '&mdash; ' + data.quantity_needed + ' <span class="text-muted">' + unit + '</span>';
-                    cancelEdit(itemId);
-                } else {
-                    alert('Could not update: ' + JSON.stringify(data.errors));
-                }
-            });
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'quantity_needed=' + encodeURIComponent(newQuantity),
+        })
+        .then(response => response.json())
+        .then(data => {
+
+            if (data.success) {
+
+                const unit = document.querySelector(
+                    '#quantity-view-' + itemId + ' .text-muted'
+                ).textContent;
+
+                document.getElementById('quantity-view-' + itemId).innerHTML =
+                    '&mdash; ' + data.quantity_needed +
+                    ' <span class="text-muted">' + unit + '</span>';
+
+                cancelEdit(itemId);
+
+            } else {
+                alert('Could not update: ' + JSON.stringify(data.errors));
+            }
+
+        })
+        .catch(() => {
+            alert('Something went wrong.');
+        });
     }
 
-    // Ingredient Autocomplete
+    // Enable ingredient search
     if (typeof initIngredientAutocomplete === 'function') {
         initIngredientAutocomplete({
             inputId: 'ingredient-search-shopping',
@@ -130,5 +234,6 @@
             searchUrl: '{% url "recipes:ingredient_search" %}'
         });
     }
+
 </script>
 {% endblock %}

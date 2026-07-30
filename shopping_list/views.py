@@ -23,20 +23,34 @@ def _notify_item_saved(request, item, created):
 
 def _add_or_update_item(user, ingredient, quantity_needed):
     """
-    Creates a shopping list item or increases its quantity if it already exists.
+    Adds quantity to an existing ACTIVE item, or creates a brand new one.
+    Leaves purchased items untouched in the 'Bought' section.
     """
-    item, created = ShoppingListItem.objects.get_or_create(
+    # Look ONLY for active (unpurchased) items
+    item = ShoppingListItem.objects.filter(
         user=user,
         ingredient=ingredient,
-        defaults={"quantity_needed": quantity_needed},
-    )
+        is_purchased=False,
+    ).first()
 
-    if not created:
+    if item:
+        # Add to the active item
         item.quantity_needed += quantity_needed
         item.full_clean()
         item.save()
+        created = False
+    else:
+        # Create a fresh active item
+        item = ShoppingListItem.objects.create(
+            user=user,
+            ingredient=ingredient,
+            quantity_needed=quantity_needed,
+            is_purchased=False,
+        )
+        created = True
 
     return item, created
+
 
 
 @login_required
@@ -150,63 +164,95 @@ def clear_shopping_list(request):
 
     return redirect("shopping_list:shopping_list")
 
+@login_required
+@require_POST
+def clear_purchased_items(request):
+    # Delete all items marked as purchased for this user
+    deleted_count, _ = ShoppingListItem.objects.filter(
+        user=request.user, 
+        is_purchased=True
+    ).delete()
+    
+    if deleted_count > 0:
+        messages.success(request, f"Cleared {deleted_count} purchased item(s)!")
+    else:
+        messages.info(request, "No purchased items to clear.")
+        
+    return redirect('shopping_list:shopping_list')
+
 
 @login_required
 @require_POST
 def toggle_purchased(request, item_id):
-    item = get_object_or_404(
-        ShoppingListItem,
-        id=item_id,
-        user=request.user,
-    )
+    item = get_object_or_404(ShoppingListItem, id=item_id, user=request.user)
+    target_status = not item.is_purchased
 
-    item.is_purchased = not item.is_purchased
-    item.save()
-
-    if item.is_purchased:
-        # buying an item moves its quantity into the pantry
+    #  If marking as BOUGHT (moving from active -> purchased), add to Pantry
+    if target_status is True:
         pantry_item, created = PantryItem.objects.get_or_create(
             user=request.user,
             ingredient=item.ingredient,
-            defaults={"quantity": item.quantity_needed},
+            defaults={'quantity': item.quantity_needed}
         )
-
         if not created:
             pantry_item.quantity += item.quantity_needed
             pantry_item.save()
 
-        messages.success(
-            request,
-            f'"{item.ingredient.title}" moved to your pantry.',
-        )
+    existing_target_item = ShoppingListItem.objects.filter(
+        user=request.user,
+        ingredient=item.ingredient,
+        is_purchased=target_status
+    ).exclude(id=item.id).first()
+
+    if existing_target_item:
+        existing_target_item.quantity_needed += item.quantity_needed
+        existing_target_item.save()
+        item.delete()
     else:
-        # un-marking has to undo the transfer, otherwise toggling the same
-        # item twice would add its quantity to the pantry again
-        pantry_item = PantryItem.objects.filter(
-            user=request.user,
-            ingredient=item.ingredient,
-        ).first()
+        item.is_purchased = target_status
+        item.save()
 
-        if pantry_item:
-            remaining = pantry_item.quantity - item.quantity_needed
+    return redirect(request.META.get('HTTP_REFERER', 'shopping_list:shopping_list'))
 
-            if remaining > 0:
-                pantry_item.quantity = remaining
-                pantry_item.save()
-            else:
-                # nothing left of it, so drop the row instead of storing zero
-                pantry_item.delete()
-
-        messages.info(
-            request,
-            f'"{item.ingredient.title}" removed from your pantry again.',
-        )
-
-    return redirect("shopping_list:shopping_list")
 
 
 @login_required
 @require_POST
+def toggle_purchased(request, item_id):
+    item = get_object_or_404(ShoppingListItem, id=item_id, user=request.user)
+    target_status = not item.is_purchased
+
+    if target_status is True:
+        pantry_item, created = PantryItem.objects.get_or_create(
+            user=request.user,
+            ingredient=item.ingredient,
+            defaults={'quantity': item.quantity_needed}
+        )
+        if not created:
+            pantry_item.quantity += item.quantity_needed
+            pantry_item.save()
+        
+        # Add success message here
+        messages.success(request, f"Added {item.quantity_needed} {item.ingredient.title} to your pantry!")
+
+    
+    existing_target_item = ShoppingListItem.objects.filter(
+        user=request.user,
+        ingredient=item.ingredient,
+        is_purchased=target_status
+    ).exclude(id=item.id).first()
+
+    if existing_target_item:
+        existing_target_item.quantity_needed += item.quantity_needed
+        existing_target_item.save()
+        item.delete()
+    else:
+        item.is_purchased = target_status
+        item.save()
+
+    return redirect(request.META.get('HTTP_REFERER', 'shopping_list:shopping_list'))
+
+
 def add_all_missing(request, recipe_id):
     recipe = get_object_or_404(
         Recipe.objects.prefetch_related("recipeingredient_set__ingredient"),

@@ -5,7 +5,7 @@
         <a href="{% url 'recipes:recipe_detail' recipe.id %}" class="card recipe-card">
             <div class="recipe-card__banner">
                 {% if recipe.image_url %}
-                <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" class="recipe-card__img"> {% else %} {{ recipe.icon }} {% endif %}
+                <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" loading="lazy" class="recipe-card__img"> {% else %} {{ recipe.icon }} {% endif %}
             </div>
             <div class="recipe-card__body">
                 <h5 class="recipe-card__title">{{ recipe.title }}</h5>
@@ -24,6 +24,33 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- ==================== PAGINATION BUTTONS MODIFICATION ==================== -->
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mt-4">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Previous
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="btn btn-primary">{{ num }}</span>
+        {% else %}
+        <a href="?page={{ num }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-outline-primary">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search_query %}&search_query={{ request.GET.search_query }}{% endif %}{% if request.GET.meal_type %}&meal_type={{ request.GET.meal_type }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}" class="btn btn-outline-primary">
+        Next <i class="bi bi-arrow-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+<!-- ========================================================================= -->
+
 {% else %}
 <div class="empty-state">
     <span class="empty-state__icon"><i class="bi bi-search"></i></span>

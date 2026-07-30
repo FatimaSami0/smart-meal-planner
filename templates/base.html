@@ -17,18 +17,13 @@
 
 <body>
 
-    <!-- ================= NAVBAR =================
-         Django stores the name of the URL that matched in
-         request.resolver_match.view_name, so we compare it to each link's
-         name to decide which one gets the "active" highlight. -->
+    <!-- ================= NAVBAR ================= -->
     {% with current=request.resolver_match.view_name %}
     <nav class="navbar navbar-expand-lg custom-navbar">
         <div class="container">
-            {% load static %}
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'recipes:recipe_list' %}">
                 <img src="{% static 'images/logo.svg' %}" alt="Smart Meal Planner logo" width="32" height="32"> Smart Meal
             </a>
-
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
@@ -58,13 +53,13 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if current == 'accounts:profile' %}active{% endif %}" href="{% url 'accounts:profile' %}"> <i class="bi bi-person"></i> {{ user.username }}</a>
+                        <a class="nav-link {% if current == 'accounts:profile' %}active{% endif %}" href="{% url 'accounts:profile' %}"> 
+                            <i class="bi bi-person"></i> {{ user.username }}
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link">Logout</button>
-                        </form>
+                        <!-- Trigger modal instead of immediate logout -->
+                        <button type="button" class="btn btn-link nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</button>
                     </li>
                     {% else %}
                     <li class="nav-item">
@@ -82,15 +77,42 @@
 
     <!-- ================= PAGE CONTENT ================= -->
     <main class="container mt-4">
-
-        <!-- Django's messages framework: success/error notes set in the views -->
-        {% if messages %} {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %} {% endif %} {% block content %}{% endblock %}
+        <!-- Django's messages framework -->
+        {% if messages %} 
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %} 
+        {% endif %} 
+        
+        {% block content %}{% endblock %}
     </main>
+
+    <!-- ================= LOGOUT MODAL ================= -->
+    {% if user.is_authenticated %}
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title text-dark fw-bold" id="logoutModalLabel">Log Out?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-secondary small">
+                    Are you sure you want to log out of your account?
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- ================= FOOTER ================= -->
     <footer class="site-footer">
@@ -167,7 +189,6 @@
             });
         }
     </script>
-
 
     {% block extra_js %}{% endblock %}
 </body>

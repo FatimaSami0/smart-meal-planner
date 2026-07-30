@@ -20,12 +20,12 @@ class RegisterView(CreateView):
     template_name = "accounts/register.html"
     success_url = reverse_lazy("accounts:login")
 
-# User login page
+# user login page
 class CustomLoginView(LoginView):
     form_class = CustomUserLoginForm
     template_name = "accounts/login.html"
 
-# Display the logged-in user's profile
+# display the logged-in user's profile
 class ProfileView(LoginRequiredMixin, DetailView):
     model = CustomUser
     template_name = "accounts/profile.html"

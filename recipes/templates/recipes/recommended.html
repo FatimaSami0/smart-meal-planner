@@ -32,9 +32,37 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- ==================== PAGINATION BUTTONS MODIFICATION ==================== -->
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mt-4">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Previous
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="btn btn-primary">{{ num }}</span>
+        {% else %}
+        <a href="?page={{ num }}" class="btn btn-outline-primary">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-primary">
+        Next <i class="bi bi-arrow-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+<!-- ========================================================================= -->
+
 {% else %}
 <div class="empty-state">
     <span class="empty-state__icon"><i class="bi bi-egg-fried"></i></span>
-    <p>There are no recipes in the system yet.</p>
+    <p>Oops.... your pantry is empty so we couldn't find any recommendations for you </p>
+    <a href="{% url 'pantry:list' %}" class="btn btn-outline-primary">Want to update your pantry?</a>
 </div>
 {% endif %} {% endblock %}

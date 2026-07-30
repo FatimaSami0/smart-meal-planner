@@ -14,7 +14,7 @@ class ShoppingListItem(models.Model):
     is_purchased = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ("user", "ingredient")
+        unique_together = ("user", "ingredient", "is_purchased")
 
     def __str__(self):
         return f"{self.user.username} needs {self.quantity_needed} {self.ingredient.unit} of {self.ingredient.title}"
