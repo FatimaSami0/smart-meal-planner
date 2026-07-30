@@ -1,12 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from pantry.models import PantryItem
 from recipes.models import Recipe
+
 from .forms import ShoppingListItemForm, ShoppingListQuantityForm
 from .models import ShoppingListItem
 
@@ -14,20 +14,24 @@ from .models import ShoppingListItem
 def _notify_item_saved(request, item, created):
     """Sends a standardized success message for added or updated items."""
     if created:
-        messages.success(request, f'"{item.ingredient.title}" added to your shopping list!')
+        messages.success(
+            request,
+            f'"{item.ingredient.title}" added to your shopping list!',
+        )
     else:
         messages.success(
             request,
-            f'Updated "{item.ingredient.title}" — now {item.quantity_needed} {item.ingredient.unit}.',
+            f'Updated "{item.ingredient.title}" — now '
+            f"{item.quantity_needed} {item.ingredient.unit}.",
         )
 
 
 def _add_or_update_item(user, ingredient, quantity_needed):
     """
-    Adds quantity to an existing ACTIVE item, or creates a brand new one.
-    Leaves purchased items untouched in the 'Bought' section.
+    Adds quantity to an existing ACTIVE item,
+    or creates a brand new one.
+    Leaves purchased items untouched.
     """
-    # Look ONLY for active (unpurchased) items
     item = ShoppingListItem.objects.filter(
         user=user,
         ingredient=ingredient,
@@ -35,13 +39,11 @@ def _add_or_update_item(user, ingredient, quantity_needed):
     ).first()
 
     if item:
-        # Add to the active item
         item.quantity_needed += quantity_needed
         item.full_clean()
-        item.save(update_fields=["quantity_needed"])
+        item.save()
         created = False
     else:
-        # Create a fresh active item
         item = ShoppingListItem.objects.create(
             user=user,
             ingredient=ingredient,
@@ -56,9 +58,10 @@ def _add_or_update_item(user, ingredient, quantity_needed):
 @login_required
 @require_http_methods(["GET"])
 def shopping_list(request):
-    items = ShoppingListItem.objects.filter(
-        user=request.user
-    ).select_related("ingredient")
+    items = (
+        ShoppingListItem.objects.filter(user=request.user)
+        .select_related("ingredient")
+    )
 
     return render(
         request,
@@ -74,11 +77,9 @@ def shopping_list(request):
 @require_POST
 def add_item(request):
     """
-    Handles both ways of adding items to the shopping list.
-
-    The same view is used for:
-    1. Manual addition from the shopping list page.
-    2. Adding ingredients from a recipe page.
+    Handles both ways of adding items:
+    1. From the shopping list page.
+    2. From the recipe page.
     """
     form = ShoppingListItemForm(request.POST)
 
@@ -98,8 +99,12 @@ def add_item(request):
         messages.error(request, "Please fix the errors below.")
 
     recipe_id = request.POST.get("recipe_id")
+
     if recipe_id:
-        return redirect("recipes:recipe_detail", recipe_id=recipe_id)
+        return redirect(
+            "recipes:recipe_detail",
+            recipe_id=recipe_id,
+        )
 
     return redirect("shopping_list:shopping_list")
 
@@ -108,12 +113,15 @@ def add_item(request):
 @require_POST
 def edit_item(request, item_id):
     item = get_object_or_404(
-        ShoppingListItem.objects.select_related("ingredient"),
+        ShoppingListItem,
         id=item_id,
         user=request.user,
     )
 
-    form = ShoppingListQuantityForm(request.POST, instance=item)
+    form = ShoppingListQuantityForm(
+        request.POST,
+        instance=item,
+    )
 
     if form.is_valid():
         form.save()
@@ -126,7 +134,10 @@ def edit_item(request, item_id):
                 }
             )
 
-        messages.success(request, f'Updated "{item.ingredient.title}".')
+        messages.success(
+            request,
+            f'Updated "{item.ingredient.title}".',
+        )
 
     elif request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return JsonResponse(
@@ -159,7 +170,7 @@ def delete_item(request, item_id):
 @require_POST
 def clear_shopping_list(request):
     ShoppingListItem.objects.filter(
-        user=request.user
+        user=request.user,
     ).delete()
 
     return redirect("shopping_list:shopping_list")
@@ -168,66 +179,88 @@ def clear_shopping_list(request):
 @login_required
 @require_POST
 def clear_purchased_items(request):
-    # Delete all items marked as purchased for this user
     deleted_count, _ = ShoppingListItem.objects.filter(
-        user=request.user, 
-        is_purchased=True
+        user=request.user,
+        is_purchased=True,
     ).delete()
-    
+
     if deleted_count > 0:
-        messages.success(request, f"Cleared {deleted_count} purchased item(s)!")
+        messages.success(
+            request,
+            f"Cleared {deleted_count} purchased item(s)!",
+        )
     else:
-        messages.info(request, "No purchased items to clear.")
-        
-    return redirect('shopping_list:shopping_list')
+        messages.info(
+            request,
+            "No purchased items to clear.",
+        )
+
+    return redirect("shopping_list:shopping_list")
 
 
 @login_required
 @require_POST
 def toggle_purchased(request, item_id):
     item = get_object_or_404(
-        ShoppingListItem.objects.select_related("ingredient"),
+        ShoppingListItem,
         id=item_id,
-        user=request.user
+        user=request.user,
     )
+
     target_status = not item.is_purchased
 
-    #  If marking as BOUGHT (moving from active -> purchased), add to Pantry
-    if target_status is True:
+    if target_status:
         pantry_item, created = PantryItem.objects.get_or_create(
             user=request.user,
             ingredient=item.ingredient,
-            defaults={'quantity': item.quantity_needed}
+            defaults={
+                "quantity": item.quantity_needed,
+            },
         )
+
         if not created:
             pantry_item.quantity += item.quantity_needed
-            pantry_item.save(update_fields=["quantity"])
-        
-        # Add success message here
-        messages.success(request, f"Added {item.quantity_needed} {item.ingredient.title} to your pantry!")
+            pantry_item.save()
 
-    existing_target_item = ShoppingListItem.objects.filter(
-        user=request.user,
-        ingredient=item.ingredient,
-        is_purchased=target_status
-    ).exclude(id=item.id).first()
+        messages.success(
+            request,
+            f"Added {item.quantity_needed} "
+            f"{item.ingredient.title} to your pantry!",
+        )
+
+    existing_target_item = (
+        ShoppingListItem.objects.filter(
+            user=request.user,
+            ingredient=item.ingredient,
+            is_purchased=target_status,
+        )
+        .exclude(id=item.id)
+        .first()
+    )
 
     if existing_target_item:
         existing_target_item.quantity_needed += item.quantity_needed
-        existing_target_item.save(update_fields=["quantity_needed"])
+        existing_target_item.save()
         item.delete()
     else:
         item.is_purchased = target_status
-        item.save(update_fields=["is_purchased"])
+        item.save()
 
-    return redirect(request.META.get('HTTP_REFERER', 'shopping_list:shopping_list'))
+    return redirect(
+        request.META.get(
+            "HTTP_REFERER",
+            "shopping_list:shopping_list",
+        )
+    )
 
 
 @login_required
 @require_POST
 def add_all_missing(request, recipe_id):
     recipe = get_object_or_404(
-        Recipe.objects.prefetch_related("recipeingredient_set__ingredient"),
+        Recipe.objects.prefetch_related(
+            "recipeingredient_set__ingredient"
+        ),
         id=recipe_id,
     )
 
@@ -239,9 +272,9 @@ def add_all_missing(request, recipe_id):
     added_count = 0
 
     for ri in recipe.recipeingredient_set.all():
-        missing_qty = ri.required_quantity - pantry.get(
-            ri.ingredient_id,
-            0,
+        missing_qty = (
+            ri.required_quantity
+            - pantry.get(ri.ingredient_id, 0)
         )
 
         if missing_qty > 0:
@@ -255,12 +288,14 @@ def add_all_missing(request, recipe_id):
     if added_count:
         messages.success(
             request,
-            f"{added_count} missing ingredient(s) added to your shopping list!",
+            f"{added_count} missing ingredient(s) "
+            "added to your shopping list!",
         )
     else:
         messages.info(
             request,
-            "Nothing to add — you already have everything or it's all on your list.",
+            "Nothing to add — you already have everything "
+            "or it's all on your list.",
         )
 
     return redirect(
