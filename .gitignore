@@ -1,5 +1,18 @@
-.venv/
 venv/
+.venv/
+env/
+ENV/
+
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+*.sqlite3
 db.sqlite3
+
+# we did it on purpose so that the project can connect to the database
+!.env
+
+.vscode/
+.idea/
