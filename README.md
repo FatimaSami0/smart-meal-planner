@@ -18,6 +18,12 @@
 
 The project targets students and home cooks who want to reduce food waste, avoid unnecessary grocery trips, and spend less time figuring out "what can I actually cook right now." By linking pantry stock directly to recipe requirements, the app removes the manual work of comparing what's needed against what's already available.
 
+##  Live Demo
+
+The app is currently deployed and hosted on Railway:
+* **Live Application:**[https://smart-meal-planner-production-6db1.up.railway.app/recipes/](https://smart-meal-planner-production-6db1.up.railway.app/recipes/)
+
+
 ### Core Features
 
 - **Accounts** — registration, login/logout, profile editing, password change, account deletion (custom user model)
@@ -84,7 +90,7 @@ A key requirement for this project was implementing AJAX so the interface update
 
 To demonstrate that these views are reading live data from the database (not hardcoded HTML), each list view is paired with the corresponding Django admin view of the same records.
 
-**Recipe List — Frontend View (paginated, 6 per page)**
+**Recipe List — Frontend View (paginated, 9 per page)**
 ![Recipe list](screenshots/recipe_list.png)
 
 **Recipe Records — Django Admin (same data, raw database rows)**

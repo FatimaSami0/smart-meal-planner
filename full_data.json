@@ -528,6 +528,152 @@
     }
 },
 {
+    "model": "sessions.session",
+    "pk": "1t94ux56yvz4innbfcs5dza6m974hnix",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEwvIpL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aI6EtBqCUJA0opZWfAI1UEmwyQMUL1MY5VITSlylbIylhFCmicJm9P9eLN_s:1wpUjR:1KAHvlBzNoGazCGfxLpcawkmOMJtEWBje7WHI6cLa5g",
+        "expire_date": "2026-08-13T17:39:45.622Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "62zmi80cnxgk5mw2q93eu3z86uuriyhj",
+    "fields": {
+        "session_data": ".eJxVjEEOwiAQRe_C2pABcUpduu8ZCMMMUjU0Ke3KeHfbpAvd_vf-e6sQ16WEtckcRlZXZdXpd6OYnlJ3wI9Y75NOU13mkfSu6IM2PUwsr9vh_gVKbGV7A1p2VgyYhE6S6xxxzkZ6ycnyuUMCu9UI2XuHTBfMAGBiRmfQQ68-X-94N_E:1wpUgp:2lZWiGHvaNxuDmwCP2c8Hgvrrk0VAWOcOuUzoDKv8QQ",
+        "expire_date": "2026-08-13T17:37:03.464Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "6czz9tletf14hecihuvaaa8e2w9wugfb",
+    "fields": {
+        "session_data": ".eJxVjEEOwiAQRe_C2pABcUpduu8ZCMMMUjU0Ke3KeHfbpAvd_vf-e6sQ16WEtckcRlZXZdXpd6OYnlJ3wI9Y75NOU13mkfSu6IM2PUwsr9vh_gVKbGV7A1p2VgyYhE6S6xxxzkZ6ycnyuUMCu9UI2XuHTBfMAGBiRmfQQ68-X-94N_E:1wpUgs:cb134ouY1_mBN4VNYWPjxNxwRO_7BSSq-CiWXa8-XGk",
+        "expire_date": "2026-08-13T17:37:06.502Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "acmm6pa5ibz9o3e8m4yit3oqayu8c2m8",
+    "fields": {
+        "session_data": ".eJxVjEEOwiAQRe_C2pABcUpduu8ZCMMMUjU0Ke3KeHfbpAvd_vf-e6sQ16WEtckcRlZXZdXpd6OYnlJ3wI9Y75NOU13mkfSu6IM2PUwsr9vh_gVKbGV7A1p2VgyYhE6S6xxxzkZ6ycnyuUMCu9UI2XuHTBfMAGBiRmfQQ68-X-94N_E:1wpUgr:y9fLmyaeejiJzc99pHOHVdaMHOjZT3X3gjfSsJQb7fk",
+        "expire_date": "2026-08-13T17:37:05.010Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "io39tgplpakeh3d3mob1fekxz4z3vjzj",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEwvIpL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aI6EtBqCUJA0opZWfAI1UEmwyQMUL1MY5VITSlylbIylhFCmicJm9P9eLN_s:1wpTKm:y0vEY-vyD4k2WlQspAT5oK7QJd_pO0pGokjlHwCxKrE",
+        "expire_date": "2026-08-13T16:10:12.376Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "pfpd6x96oij5koqzn31l529g9t8rpqry",
+    "fields": {
+        "session_data": ".eJxVjDEOwyAUQ-_CXCEggUDH7jkD-vA_JW0FUkimqncvkTK0kgfLfvabedi37PdGq1-QXdnALr9ZgPikchT4gHKvPNayrUvgB8LPtvG5Ir1uJ_t3kKHlviZLVliRlAEkHYXDEEGhBKudApdAjnpI05AUSYOj7lY5Kzo9Gepiny_3UzgV:1wpX6z:rmKAhmdABYa12Lgfz9Mto-7cEV0zaflFp0QBtaqUrZM",
+        "expire_date": "2026-08-13T20:12:13.037Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "r06wkogp6f18okh3fmeux1nqn41yij2p",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEwvIpL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aI6EtBqCUJA0opZWfAI1UEmwyQMUL1MY5VITSlylbIylhFCmicJm9P9eLN_s:1wpTD8:zoO3hVwkXl440ytF1HhIoRo22sgaimJrjD-wH8soI_s",
+        "expire_date": "2026-08-13T16:02:18.928Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "v4lgcwemckzv0yci13itlh1i1rj6n3k2",
+    "fields": {
+        "session_data": ".eJxVjDEOwyAUQ-_CXCEggUDH7jkD-vA_JW0FUkimqncvkTK0kgfLfvabedi37PdGq1-QXdnALr9ZgPikchT4gHKvPNayrUvgB8LPtvG5Ir1uJ_t3kKHlviZLVliRlAEkHYXDEEGhBKudApdAjnpI05AUSYOj7lY5Kzo9Gepiny_3UzgV:1wpUup:auP94nH-feHK0hI9A5HWw5LjP0CMhZhh43NGuZ1DYlk",
+        "expire_date": "2026-08-13T17:51:31.013Z"
+    }
+},
+{
+    "model": "sessions.session",
+    "pk": "xzpoom6v1la9zmadu06jh9zgtghu0lst",
+    "fields": {
+        "session_data": ".eJxVjMsOwiAQRf-FtSEwvIpL934DAWaQqoGktCvjv2uTLnR7zzn3xULc1hq2QUuYkZ2ZZKffLcX8oLYDvMd26zz3ti5z4rvCDzr4tSM9L4f7d1DjqN9aI6EtBqCUJA0opZWfAI1UEmwyQMUL1MY5VITSlylbIylhFCmicJm9P9eLN_s:1wpTpf:HBuUHBD2bLPYAEvXDWY3l4m363i6VpJBDqIpop6bdsk",
+        "expire_date": "2026-08-13T16:42:07.342Z"
+    }
+},
+{
+    "model": "accounts.customuser",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$k7mOHwi5j5eIUYfbqyLrjZ$O4GjvPRiFVFowQPz9Z72jVljrulUGK4yF1tGsqN8FLQ=",
+        "last_login": "2026-07-30T17:39:45.537Z",
+        "is_superuser": false,
+        "username": "malaz",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-30T16:01:56.531Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "accounts.customuser",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$m2vUILSqdiIVnzDrULrLc4$JmYZBUjle+4HymzhTCDrLmrRRHUZAaSstFGbLSJC85A=",
+        "last_login": "2026-07-30T17:37:06.354Z",
+        "is_superuser": false,
+        "username": "userw",
+        "first_name": "",
+        "last_name": "",
+        "email": "userw@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-30T17:36:56.526Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "accounts.customuser",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$Z6mlrQqPUvrQOekCe038y8$AtWWeHT9GTGexOK/5qRn8ygsDuMvmcWomZH5TLr2EHA=",
+        "last_login": "2026-07-30T20:12:12.943Z",
+        "is_superuser": false,
+        "username": "amr",
+        "first_name": "",
+        "last_name": "",
+        "email": "amr@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-30T17:51:14.691Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "pantry.pantryitem",
+    "pk": 10,
+    "fields": {
+        "user": 3,
+        "ingredient": 17,
+        "quantity": "1000.00",
+        "expiration_date": null
+    }
+},
+{
+    "model": "pantry.pantryitem",
+    "pk": 11,
+    "fields": {
+        "user": 3,
+        "ingredient": 10,
+        "quantity": "700.00",
+        "expiration_date": null
+    }
+},
+{
     "model": "recipes.ingredient",
     "pk": 1,
     "fields": {
@@ -5628,6 +5774,16 @@
         "recipe": 60,
         "ingredient": 120,
         "required_quantity": "15.00"
+    }
+},
+{
+    "model": "shopping_list.shoppinglistitem",
+    "pk": 9,
+    "fields": {
+        "user": 2,
+        "ingredient": 24,
+        "quantity_needed": "2.00",
+        "is_purchased": false
     }
 }
 ]
