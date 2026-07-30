@@ -12,7 +12,7 @@ __pycache__/
 db.sqlite3
 data_recipe.json
 
- .env
+.env
 !.env.example
 
 .vscode/
