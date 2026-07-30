@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
@@ -37,7 +38,7 @@ def _add_or_update_item(user, ingredient, quantity_needed):
         # Add to the active item
         item.quantity_needed += quantity_needed
         item.full_clean()
-        item.save()
+        item.save(update_fields=["quantity_needed"])
         created = False
     else:
         # Create a fresh active item
@@ -50,7 +51,6 @@ def _add_or_update_item(user, ingredient, quantity_needed):
         created = True
 
     return item, created
-
 
 
 @login_required
@@ -108,7 +108,7 @@ def add_item(request):
 @require_POST
 def edit_item(request, item_id):
     item = get_object_or_404(
-        ShoppingListItem,
+        ShoppingListItem.objects.select_related("ingredient"),
         id=item_id,
         user=request.user,
     )
@@ -164,6 +164,7 @@ def clear_shopping_list(request):
 
     return redirect("shopping_list:shopping_list")
 
+
 @login_required
 @require_POST
 def clear_purchased_items(request):
@@ -184,7 +185,11 @@ def clear_purchased_items(request):
 @login_required
 @require_POST
 def toggle_purchased(request, item_id):
-    item = get_object_or_404(ShoppingListItem, id=item_id, user=request.user)
+    item = get_object_or_404(
+        ShoppingListItem.objects.select_related("ingredient"),
+        id=item_id,
+        user=request.user
+    )
     target_status = not item.is_purchased
 
     #  If marking as BOUGHT (moving from active -> purchased), add to Pantry
@@ -196,46 +201,11 @@ def toggle_purchased(request, item_id):
         )
         if not created:
             pantry_item.quantity += item.quantity_needed
-            pantry_item.save()
-
-    existing_target_item = ShoppingListItem.objects.filter(
-        user=request.user,
-        ingredient=item.ingredient,
-        is_purchased=target_status
-    ).exclude(id=item.id).first()
-
-    if existing_target_item:
-        existing_target_item.quantity_needed += item.quantity_needed
-        existing_target_item.save()
-        item.delete()
-    else:
-        item.is_purchased = target_status
-        item.save()
-
-    return redirect(request.META.get('HTTP_REFERER', 'shopping_list:shopping_list'))
-
-
-
-@login_required
-@require_POST
-def toggle_purchased(request, item_id):
-    item = get_object_or_404(ShoppingListItem, id=item_id, user=request.user)
-    target_status = not item.is_purchased
-
-    if target_status is True:
-        pantry_item, created = PantryItem.objects.get_or_create(
-            user=request.user,
-            ingredient=item.ingredient,
-            defaults={'quantity': item.quantity_needed}
-        )
-        if not created:
-            pantry_item.quantity += item.quantity_needed
-            pantry_item.save()
+            pantry_item.save(update_fields=["quantity"])
         
         # Add success message here
         messages.success(request, f"Added {item.quantity_needed} {item.ingredient.title} to your pantry!")
 
-    
     existing_target_item = ShoppingListItem.objects.filter(
         user=request.user,
         ingredient=item.ingredient,
@@ -244,15 +214,17 @@ def toggle_purchased(request, item_id):
 
     if existing_target_item:
         existing_target_item.quantity_needed += item.quantity_needed
-        existing_target_item.save()
+        existing_target_item.save(update_fields=["quantity_needed"])
         item.delete()
     else:
         item.is_purchased = target_status
-        item.save()
+        item.save(update_fields=["is_purchased"])
 
     return redirect(request.META.get('HTTP_REFERER', 'shopping_list:shopping_list'))
 
 
+@login_required
+@require_POST
 def add_all_missing(request, recipe_id):
     recipe = get_object_or_404(
         Recipe.objects.prefetch_related("recipeingredient_set__ingredient"),

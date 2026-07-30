@@ -11,12 +11,11 @@ from .models import PantryItem
 @login_required
 @require_http_methods(["GET"])
 def pantry_list_view(request):
-    # Get all pantry items for the current user
+    # Get all pantry items for the current user (ingredient pre-joined)
     pantry_items = PantryItem.objects.select_related("ingredient").filter(
         user=request.user
     )
 
-    # empty form for adding a new pantry item
     form = PantryItemForm()
 
     context = {
@@ -49,10 +48,14 @@ def pantry_add_view(request):
     quantity = form.cleaned_data["quantity"]
     expiration_date = form.cleaned_data.get("expiration_date")
 
-    # If the same ingredient with the same expiration date exists, update its quantity
-    existing_item = PantryItem.objects.filter(
-        user=request.user, ingredient=ingredient, expiration_date=expiration_date
-    ).first()
+    #Add select_related so ingredient title/unit are preloaded for JSON
+    existing_item = (
+        PantryItem.objects.select_related("ingredient")
+        .filter(
+            user=request.user, ingredient=ingredient, expiration_date=expiration_date
+        )
+        .first()
+    )
 
     if existing_item:
         existing_item.quantity += quantity
@@ -85,8 +88,10 @@ def pantry_add_view(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def pantry_update_view(request, pk):
-    # Get the pantry item that belongs to the current user
-    item = get_object_or_404(PantryItem, pk=pk, user=request.user)
+    # select_related to avoid N+1 queries when rendering the confirmation template
+    item = get_object_or_404(
+        PantryItem.objects.select_related("ingredient"), pk=pk, user=request.user
+    )
 
     data = request.POST.copy()
 
@@ -120,8 +125,10 @@ def pantry_update_view(request, pk):
 @login_required
 @require_http_methods(["GET", "POST", "DELETE"])
 def pantry_delete_view(request, pk):
-    # Find the item to delete
-    item = get_object_or_404(PantryItem, pk=pk, user=request.user)
+    # OPTIMIZED: Preload ingredient for confirmation template rendering
+    item = get_object_or_404(
+        PantryItem.objects.select_related("ingredient"), pk=pk, user=request.user
+    )
 
     # Show a confirmation page before deleting
     if request.method == "GET":
@@ -136,7 +143,7 @@ def pantry_delete_view(request, pk):
 
 
 @login_required
-@require_http_methods(["POST","DELETE"])
+@require_http_methods(["POST", "DELETE"])
 def clear_pantry(request):
     # Remove all pantry items for the current user
     PantryItem.objects.filter(

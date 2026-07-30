@@ -26,9 +26,9 @@ def get_pantry_quantities(user):
 
 
 def _filter_recipes(request):
-    # Apply the search and filter options
+    # Apply search/filter options with prefetching to fix N+1 queries across list & live search
     form = RecipeSearchFilterForm(request.GET)
-    recipes = Recipe.objects.all()
+    recipes = Recipe.objects.prefetch_related("recipeingredient_set__ingredient")
 
     if form.is_valid():
         search_query = form.cleaned_data.get("search_query")
@@ -145,7 +145,12 @@ def recommended_recipes(request):
             {"scored_recipes": []},
         )
 
-    all_recipes = Recipe.objects.prefetch_related("recipeingredient_set__ingredient")
+    # Get all recipes that use at least one of the ingredients in the pantry
+    all_recipes = (
+        Recipe.objects.filter(recipeingredient__ingredient_id__in=pantry_ingredient_ids)
+        .distinct()
+        .prefetch_related("recipeingredient_set__ingredient")
+    )
     scored_recipes = []
 
     # Calculate how well each recipe matches the pantry
@@ -226,10 +231,11 @@ def toggle_favorite(request, recipe_id):
 @login_required
 @require_GET
 def favorite_recipes(request):
-    # Get all favorite recipes for the current user
+    # Get all favorite recipes for the logged-in user with prefetching to avoid N+1 queries
     favorites = (
         FavoriteRecipe.objects.filter(user=request.user)
         .select_related("recipe")
+        .prefetch_related("recipe__recipeingredient_set__ingredient")
         .order_by("recipe__title")
     )
 
