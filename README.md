@@ -30,7 +30,6 @@ The app is currently deployed and hosted on Railway:
 - **Pantry** — add, update, delete, and clear pantry ingredients, each with quantity and optional expiration date
 - **Recipes** — paginated recipe browsing, recipe detail view, live search, ingredient-based search, personalized recommendations based on pantry contents, and favoriting
 - **Shopping List** — add/edit/delete items, mark items as purchased which restocks the pantry automatically, clear purchased items, and bulk-add all ingredients a recipe is missing
-- **Data seeding** — management commands (`seed_data`, `seed_pantry`) to populate recipes and pantry items from JSON fixtures
 - **AJAX-powered interactions** — see dedicated section below
 - **Dockerized** — single-command startup with Docker Compose
 
@@ -40,9 +39,9 @@ The app is currently deployed and hosted on Railway:
 |---|---|
 | Language | Python 3.12 |
 | Framework | Django 6.0.7 |
-| Database | PostgreSQL (via `psycopg2-binary` + `dj-database-url`); falls back to SQLite if `DATABASE_URL` isn't set |
-| WSGI server | Gunicorn |
-| Static files | WhiteNoise |
+| Database | PostgreSQL (on a server); falls back to a local SQLite if `DATABASE_URL` isn't set |
+| WSGI server | Gunicorn (for deployment) |
+| Static files | WhiteNoise (for deployment) |
 | Config | `python-dotenv` (`.env` file) |
 | Containerization | Docker, Docker Compose |
 | Frontend | Django Templates + vanilla JavaScript (`fetch` API) + CSS |
@@ -135,7 +134,7 @@ To demonstrate that these views are reading live data from the database (not har
 ## Project Structure
 
 ```
-smart-meal-planner/
+ssmart-meal-planner/
 ├── accounts/             # Custom user model, auth & profile views
 ├── pantry/               # Pantry ingredient tracking + seed command
 ├── recipes/               # Recipes, ingredients, favorites + seed command
@@ -144,20 +143,20 @@ smart-meal-planner/
 ├── templates/              # Shared base template & partials
 ├── static/                 # CSS and image assets
 ├── screenshots/             # README screenshots (see above)
-├── data_recipes.json       # Seed data for recipes
-├── datadump.json           # Additional data fixture
-├── Dockerfile
-├── docker-compose.yml
+├── full_data.json           # A fixture contains all data from our DB
+├── Dockerfile               # For running the project locally and on the server
+├── docker-compose.yml       # For running the project locally using Docker Desktop
 ├── manage.py
 └── requirements.txt
 ```
 
 ## Getting Started
 
-### Option A: Docker (recommended)
+### Option A: Docker - if you have Docker Desktop  (recommended)
+Notice that `docker-compose.yml` will build everything automatically such as creating a `.env` file, migrating models to the local database, loading the `full_data.json` to the local database and finally run the server. Notice that the first time to run this command it will take some time due to downloading all libraries and loading the fixtrue.
 ```bash
 docker-compose up --build
-docker-compose exec web python manage.py migrate
+docker-compose exec web {your_django_command_if_needed}
 ```
 
 ### Option B: Local
@@ -166,21 +165,35 @@ python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py loaddata full_data.json
 python manage.py runserver
 ```
 
 App runs at `http://127.0.0.1:8000/` (redirects to `/recipes/`).
 
-### Environment Variables (`.env`)
+### Example Environment Variables File (`.env.example`)
+This an exmaple for how the `.env` look like. Create a  `.env` file and then copy the two values for secret key and debug status  from the `.env.example` file.
+Note that even if you don't that the code will run.
+Note that if you are using docker then docker automatically will do this step for you and copy all of `.env.example` contents into `.env` file .
 ```env
-SECRET_KEY=your-django-secret-key
-DEBUG=True
-DATABASE_URL=postgresql://<user>:<password>@<host>/<database>?sslmode=require
+# TO RUN THE PROJECT ON YOUR LOCAL LAPTOP JUST REMOVE .example FROM FILE NAME, 
+# OR CREATE ANOTHER .env FILE WITH THE FOLLOWING VALUES
+# NOTE THAT DOCKER WILL AUTOMTICALLY COPY THIS FILE CONTENTS INTO .env FILE
+# We are not going to set DATABASE_URL since 
+# for local setup we will use local db and we will load our fixture full_data.json into it
+DEBUG="True"
+SECRET_KEY="your_secret_key"
+```
+
+### Environment Variables (`.env`)
+An example for how will the `.env` file look like.
+```env
+DEBUG="True"
+SECRET_KEY="your-django-secret-key"
 ```
 
 ### Loading Sample Data
 ```bash
-python manage.py seed_data      # recipes + ingredients
-python manage.py seed_pantry    # sample pantry items for the first user
+python manage.py loaddata full_data.json  
 ```
 
